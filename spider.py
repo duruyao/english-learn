@@ -2,19 +2,36 @@ import os
 import sys
 import csv
 
+from typing import Tuple, List
+
 
 def empty(var) -> bool:
+    """
+
+    :param var:
+    :return:
+    """
     return len(var) == 0
 
 
-def search_pronunciations(word: str) -> tuple[str, str]:
+def search_pronunciations(word: str) -> Tuple[str, str]:
+    """
+
+    :param word:
+    :return:
+    """
     en_pronunciation, us_pronunciation = word, word
     # TODO: finish it
     #
     return en_pronunciation, us_pronunciation
 
 
-def column_widths(rows: list[list[str]]) -> list[int]:
+def column_widths(rows: List[List[str]]) -> List[int]:
+    """
+
+    :param rows:
+    :return:
+    """
     widths = []
     for row in rows:
         idx = 0
@@ -27,7 +44,12 @@ def column_widths(rows: list[list[str]]) -> list[int]:
     return widths
 
 
-def csv_to_md_table(rows: list[list[str]]) -> list[str]:
+def csv_to_md_table(rows: List[List[str]]) -> List[str]:
+    """
+
+    :param rows:
+    :return:
+    """
     table = []
     widths = column_widths(rows)
 
@@ -35,7 +57,7 @@ def csv_to_md_table(rows: list[list[str]]) -> list[str]:
     line = '|'
     for width in widths:
         line += ('-{:-<' + str(width) + '}-|').format('')
-    table.append(line)
+    table.append(line + '\n')
 
     # generate contents
     for row in rows:
@@ -44,7 +66,7 @@ def csv_to_md_table(rows: list[list[str]]) -> list[str]:
         for item in row:
             line += (' {:<' + str(widths[idx]) + '} |').format(item)
             idx += 1
-        table.append(line)
+        table.append(line + '\n')
 
     # generate
     table[0], table[1] = table[1], table[0]
@@ -57,14 +79,13 @@ def main():
     output_file = str(sys.argv[2])
 
     # pre-process input file
-    os.system('bash sort.sh ' + input_file + ' --begin-line 1')
+    os.system('bash sort.sh {} --begin-line 2'.format(input_file))
 
     # read csv data
-    with open(input_file, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
+    with open(input_file, 'r') as file:
+        reader = csv.reader(file, delimiter=',')
         for row in reader:
             data.append(row)
-    print(data)
 
     # search pronunciations
     for row in data:
@@ -76,14 +97,12 @@ def main():
         writer = csv.writer(file, delimiter=',')
         writer.writerows(data)
 
-    # csv to md table
+    # csv to markdown table
     table = csv_to_md_table(data)
-    for row in table:
-        print(row)
 
-    # write md file
-    # TODO: finish it
-    #
+    # write markdown file
+    with open(output_file, 'w') as file:
+        file.writelines(table)
 
 
 if __name__ == "__main__":
