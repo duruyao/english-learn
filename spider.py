@@ -1,8 +1,17 @@
+#!/usr/bin/env python3
+
 import os
+import re
 import sys
 import csv
-
+import requests
 from typing import Tuple, List
+
+
+def usage():
+    """Usage:
+    {} IN_CSV_FILENAME OUT_MD_FILENAME
+    """
 
 
 def empty(var) -> bool:
@@ -20,9 +29,22 @@ def search_pronunciations(word: str) -> Tuple[str, str]:
     :param word:
     :return:
     """
-    en_pronunciation, us_pronunciation = word, word
-    # TODO: finish it
-    #
+    en_pronunciation, us_pronunciation = '', ''
+    url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2.index'.format(word)
+    headers = {
+        'Host': 'dict.youdao.com',
+        'Referer': 'https://dict.youdao.com/?keyfrom=cidian',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
+    response = requests.get(url, headers=headers)
+    html = response.text
+    part = '<span class="phonetic">(.+?)</span>'
+    result = re.compile(part).findall(html)
+    if len(result) >= 1:
+        en_pronunciation = re.compile(part).findall(html)[0]
+    if len(result) >= 2:
+        us_pronunciation = re.compile(part).findall(html)[1]
+    # print(word, en_pronunciation, us_pronunciation)
     return en_pronunciation, us_pronunciation
 
 
@@ -74,6 +96,10 @@ def csv_to_md_table(rows: List[List[str]]) -> List[str]:
 
 
 def main():
+    if not len(sys.argv) == 3:
+        print(usage.__doc__.format(sys.argv[0]))
+        sys.exit(0)
+
     data = []
     input_file = str(sys.argv[1])
     output_file = str(sys.argv[2])
@@ -93,7 +119,7 @@ def main():
             row[1:] = [*search_pronunciations(row[0])]
 
     # overwrite csv file
-    with open(input_file + '.tmp', 'w') as file:
+    with open(input_file, 'w') as file:
         writer = csv.writer(file, delimiter=',')
         writer.writerows(data)
 
