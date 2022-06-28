@@ -66,6 +66,19 @@ def column_widths(rows: List[List[str]]) -> List[int]:
     return widths
 
 
+def pre_process_csv_rows(rows: List[List[str]]) -> List[List[str]]:
+    """
+
+    :param rows:
+    :return:
+    """
+    pp_rows = [rows[0]]
+    for row in rows[1:]:
+        pp_row = [row[0], '`' + row[1] + '`', '`' + row[2] + '`']
+        pp_rows.append(pp_row)
+    return pp_rows
+
+
 def csv_to_md_table(rows: List[List[str]]) -> List[str]:
     """
 
@@ -73,22 +86,23 @@ def csv_to_md_table(rows: List[List[str]]) -> List[str]:
     :return:
     """
     table = []
-    widths = column_widths(rows)
+    pp_rows = pre_process_csv_rows(rows)
+    widths = column_widths(pp_rows)
 
     # generate dividing line
     line = '|'
     for width in widths:
         line += ('-{:-<' + str(width) + '}-|').format('')
-    table.append(line + '\n')
+    table.append(line)
 
     # generate contents
-    for row in rows:
+    for row in pp_rows:
         line = '|'
         idx = 0
         for item in row:
             line += (' {:<' + str(widths[idx]) + '} |').format(item)
             idx += 1
-        table.append(line + '\n')
+        table.append(line)
 
     # generate
     table[0], table[1] = table[1], table[0]
@@ -128,7 +142,8 @@ def main():
 
     # write markdown file
     with open(output_file, 'w') as file:
-        file.writelines(table)
+        for line in table:
+            file.write(line + '\n')
 
 
 if __name__ == "__main__":
