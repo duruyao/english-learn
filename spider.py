@@ -86,8 +86,7 @@ def csv_to_md_table(rows: List[List[str]]) -> List[str]:
     :return:
     """
     table = []
-    pp_rows = pre_process_csv_rows(rows)
-    widths = column_widths(pp_rows)
+    widths = column_widths(rows)
 
     # generate dividing line
     line = '|'
@@ -96,7 +95,7 @@ def csv_to_md_table(rows: List[List[str]]) -> List[str]:
     table.append(line)
 
     # generate contents
-    for row in pp_rows:
+    for row in rows:
         line = '|'
         idx = 0
         for item in row:
@@ -138,7 +137,7 @@ def main():
         writer.writerows(data)
 
     # csv to markdown table
-    table = csv_to_md_table(data)
+    table = csv_to_md_table(pre_process_csv_rows(data))
 
     # write markdown file
     with open(output_file, 'w') as file:
