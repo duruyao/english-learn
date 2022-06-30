@@ -115,11 +115,15 @@ def rows_to_md_table(rows: List[List[str]]) -> List[str]:
     return table
 
 
-def print_as_md_table(rows: List[List[str]]):
-    print('')
+def print_md_table(rows: List[List[str]]):
     for line in rows_to_md_table(rows):
         print(line)
-    print('')
+
+
+def write_md_table(rows: List[List[str]], filename: str):
+    with open(filename, 'w') as file:
+        for line in rows_to_md_table(rows):
+            file.write(line + '\n')
 
 
 def main():
@@ -138,7 +142,7 @@ def main():
             for en_word in search_zh_word(word):
                 data.append([str(cnt), en_word, *search_en_word(en_word)])
 
-    print_as_md_table(data)
+    print_md_table(data)
 
 
 if __name__ == "__main__":
