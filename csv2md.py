@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import re
 import sys
 import csv
-import requests
-from typing import Tuple, List
+import youdao
 
 
 def usage():
@@ -14,7 +12,7 @@ def usage():
     """
 
 
-def empty(var) -> bool:
+def is_empty(var) -> bool:
     """
 
     :param var:
@@ -23,97 +21,12 @@ def empty(var) -> bool:
     return len(var) == 0
 
 
-def search_pronunciations(word: str) -> Tuple[str, str]:
-    """
-
-    :param word:
-    :return:
-    """
-    en_pronunciation, us_pronunciation = '', ''
-    url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2.index'.format(word)
-    headers = {
-        'Host': 'dict.youdao.com',
-        'Referer': 'https://dict.youdao.com/?keyfrom=cidian',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-                      '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
-    response = requests.get(url, headers=headers)
-    html = response.text
-    part = '<span class="phonetic">(.+?)</span>'
-    result = re.compile(part).findall(html)
-    if len(result) >= 1:
-        en_pronunciation = re.compile(part).findall(html)[0]
-    if len(result) >= 2:
-        us_pronunciation = re.compile(part).findall(html)[1]
-    # print(word, en_pronunciation, us_pronunciation)
-    return en_pronunciation, us_pronunciation
-
-
-def column_widths(rows: List[List[str]]) -> List[int]:
-    """
-
-    :param rows:
-    :return:
-    """
-    widths = []
-    for row in rows:
-        idx = 0
-        for item in row:
-            if idx + 1 > len(widths):
-                widths.append(0)
-            if len(item) > widths[idx]:
-                widths[idx] = len(item)
-            idx += 1
-    return widths
-
-
-def pre_process_csv_rows(rows: List[List[str]]) -> List[List[str]]:
-    """
-
-    :param rows:
-    :return:
-    """
-    pp_rows = [rows[0]]
-    for row in rows[1:]:
-        pp_row = [row[0], '`' + row[1] + '`', '`' + row[2] + '`']
-        pp_rows.append(pp_row)
-    return pp_rows
-
-
-def csv_to_md_table(rows: List[List[str]]) -> List[str]:
-    """
-
-    :param rows:
-    :return:
-    """
-    table = []
-    widths = column_widths(rows)
-
-    # generate dividing line
-    line = '|'
-    for width in widths:
-        line += ('-{:-<' + str(width) + '}-|').format('')
-    table.append(line)
-
-    # generate contents
-    for row in rows:
-        line = '|'
-        idx = 0
-        for item in row:
-            line += (' {:<' + str(widths[idx]) + '} |').format(item)
-            idx += 1
-        table.append(line)
-
-    # generate
-    table[0], table[1] = table[1], table[0]
-    return table
-
-
 def main():
     if not len(sys.argv) == 3:
         print(usage.__doc__.format(sys.argv[0]))
         sys.exit(0)
 
-    data = []
+    csv_rows = []
     input_file = str(sys.argv[1])
     output_file = str(sys.argv[2])
 
@@ -124,25 +37,30 @@ def main():
     with open(input_file, 'r') as file:
         reader = csv.reader(file, delimiter=',')
         for row in reader:
-            data.append(row)
+            if youdao.is_en_word(row[0]):
+                csv_rows.append(row)
 
-    # search pronunciations
-    for row in data:
-        if len(row) < 3 or empty(row[1]) or empty(row[2]):
-            row[1:] = [*search_pronunciations(row[0])]
+    # search phonetic symbols
+    for row in csv_rows:
+        if len(row) < 4 or is_empty(row[1]) or is_empty(row[2]) or is_empty(row[3]):
+            row[1:] = youdao.search_en_word(row[0])
 
     # overwrite csv file
     with open(input_file, 'w') as file:
         writer = csv.writer(file, delimiter=',')
-        writer.writerows(data)
+        writer.writerows(csv_rows)
 
-    # csv to markdown table
-    table = csv_to_md_table(pre_process_csv_rows(data))
+    # csv rows to markdown rows
+    md_rows = [['', csv_rows[0][0], csv_rows[0][1], csv_rows[0][2]]]
+    cnt = 0
+    for row in csv_rows[1:]:
+        cnt += 1
+        md_rows.append(
+            ['{} '.format(cnt), '[{}]({})'.format(row[0], row[3]), '`{}`'.format(row[1]), '`{}`'.format(row[2])]
+        )
 
     # write markdown file
-    with open(output_file, 'w') as file:
-        for line in table:
-            file.write(line + '\n')
+    youdao.write_md_table(md_rows, output_file)
 
 
 if __name__ == "__main__":
