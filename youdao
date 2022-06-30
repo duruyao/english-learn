@@ -104,7 +104,10 @@ def rows_to_md_table(rows: List[List[str]]) -> List[str]:
         line = '|'
         idx = 0
         for item in row:
-            line += (' {:<' + str(widths[idx]) + '} |').format(item)
+            if idx:
+                line += (' {:<' + str(widths[idx]) + '} |').format(item)
+            else:
+                line += (' {:>' + str(widths[idx]) + '} |').format(item)
             idx += 1
         table.append(line)
 
@@ -125,13 +128,15 @@ if __name__ == "__main__":
         print(usage.__doc__.format(sys.argv[0]))
         sys.exit(0)
 
-    data = [['KEYWORD', 'UK PHONETIC', 'US PHONETIC', 'URL']]
+    data = [['', 'KEYWORD', 'UK PHONETIC', 'US PHONETIC', 'URL']]
 
+    cnt = 0
     for word in sys.argv[1:]:
+        cnt += 1
         if is_en_word(word):
-            data.append([word, *youdao_search_en(word)])
+            data.append([str(cnt), word, *youdao_search_en(word)])
         else:
             for en_word in youdao_search_zh(word):
-                data.append([en_word, *youdao_search_en(en_word)])
+                data.append([str(cnt), en_word, *youdao_search_en(en_word)])
 
     print_as_md_table(data)
