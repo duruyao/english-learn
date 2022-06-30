@@ -48,7 +48,7 @@ def search_en_word(keyword: str) -> Tuple[str, str, str]:
     :param keyword:
     :return:
     """
-    uk_phonetic, us_phonetic = '', ''
+    uk_symbol, us_symbol = '', ''
     url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(keyword)
     headers = {
         'Host': 'dict.youdao.com',
@@ -58,12 +58,12 @@ def search_en_word(keyword: str) -> Tuple[str, str, str]:
     response = requests.get(url, headers=headers)
     html = response.text
     part = '<span class="phonetic">(.+?)</span>'
-    phonetics = re.compile(part).findall(html)
-    if len(phonetics) >= 1:
-        uk_phonetic = phonetics[0]
-    if len(phonetics) >= 2:
-        us_phonetic = phonetics[1]
-    return uk_phonetic, us_phonetic, url
+    symbols = re.compile(part).findall(html)
+    if len(symbols) >= 1:
+        uk_symbol = symbols[0]
+    if len(symbols) >= 2:
+        us_symbol = symbols[1]
+    return uk_symbol, us_symbol, url
 
 
 def column_widths(rows: List[List[str]]) -> List[int]:
