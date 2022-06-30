@@ -111,7 +111,6 @@ def rows_to_md_table(rows: List[List[str]]) -> List[str]:
             idx += 1
         table.append(line)
 
-    # generate
     table[0], table[1] = table[1], table[0]
     return table
 
@@ -123,7 +122,7 @@ def print_as_md_table(rows: List[List[str]]):
     print('')
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) == 1:
         print(usage.__doc__.format(sys.argv[0]))
         sys.exit(0)
@@ -140,3 +139,7 @@ if __name__ == "__main__":
                 data.append([str(cnt), en_word, *youdao_search_en(en_word)])
 
     print_as_md_table(data)
+
+
+if __name__ == "__main__":
+    main()
