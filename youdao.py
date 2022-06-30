@@ -24,7 +24,7 @@ def is_en_word(keyword: str) -> bool:
     return True
 
 
-def youdao_search_zh(keyword: str) -> List[str]:
+def search_zh_word(keyword: str) -> List[str]:
     """
 
     :param keyword:
@@ -42,7 +42,7 @@ def youdao_search_zh(keyword: str) -> List[str]:
     return re.compile(part).findall(html)
 
 
-def youdao_search_en(keyword: str) -> Tuple[str, str, str]:
+def search_en_word(keyword: str) -> Tuple[str, str, str]:
     """
 
     :param keyword:
@@ -133,10 +133,10 @@ def main():
     for word in sys.argv[1:]:
         cnt += 1
         if is_en_word(word):
-            data.append([str(cnt), word, *youdao_search_en(word)])
+            data.append([str(cnt), word, *search_en_word(word)])
         else:
-            for en_word in youdao_search_zh(word):
-                data.append([str(cnt), en_word, *youdao_search_en(en_word)])
+            for en_word in search_zh_word(word):
+                data.append([str(cnt), en_word, *search_en_word(en_word)])
 
     print_as_md_table(data)
 
