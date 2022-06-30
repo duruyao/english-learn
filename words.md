@@ -1,4 +1,4 @@
-|     | KEYWORD                                                                     | UK PHONETIC         | US PHONETIC       |
+|     | KEYWORD                                                                     | UK PRONUNCIATION    | US PRONUNCIATION  |
 |-----|-----------------------------------------------------------------------------|---------------------|-------------------|
 |  1  | [A](https://dict.youdao.com/w/eng/A/#keyfrom=dict2)                         | `[eɪ]`              | `[eɪ]`            |
 |  2  | [ago](https://dict.youdao.com/w/eng/ago/#keyfrom=dict2)                     | `[əˈɡəʊ]`           | `[əˈɡoʊ]`         |
