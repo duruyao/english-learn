@@ -131,7 +131,7 @@ def main():
         print(usage.__doc__.format(sys.argv[0]))
         sys.exit(0)
 
-    data = [['', 'KEYWORD', 'UK PHONETIC', 'US PHONETIC', 'URL']]
+    data = [['', 'KEYWORD', 'UK PRONUNCIATION', 'US PRONUNCIATION', 'URL']]
 
     cnt = 0
     for word in sys.argv[1:]:
