@@ -1,13 +1,9 @@
 import csv
 import os
 import re
-import sys
-import string
-
-import path
-import requests
-
 import youdao
+import string
+import requests
 
 
 def get_ielts_words_by_prefix(prefix: str) -> list[list[str]]:
@@ -35,7 +31,7 @@ def get_ielts_words_by_prefix(prefix: str) -> list[list[str]]:
             response.encoding = 'utf-8'
             tmp_results = re.compile('<div class="xqy_core_text">(.+?)</div>').findall(response.text.replace('\n', ''))
             words[:0] = re.compile('<p>\u3000\u3000(.+?)</p>').findall(tmp_results[0])
-        except ConnectionError as e:
+        except (ConnectionError, IndexError) as e:
             print(e)
 
     words.sort()
@@ -52,36 +48,38 @@ def get_ielts_words_by_prefix(prefix: str) -> list[list[str]]:
 
 
 def main():
-    input_file, output_file = 'ielts_words.csv', 'ielts_words.tmp.csv'
+    output_file, temp_file = 'ielts_words.csv', 'ielts_words.tmp.csv'
 
     rows = []
     exist_words = set()
-    if os.path.exists(input_file):
-        with open(input_file) as file:
+    if os.path.exists(output_file):
+        with open(output_file) as file:
             reader = csv.reader(file, delimiter=',')
             for row in reader:
                 rows.append(row)
                 if all(v for v in row):  # check if list contains empty item
                     exist_words.add(row[0])
     else:
-        rows = []
-        # rows = [['WORD', 'UK PRONUNCIATION', 'US PRONUNCIATION', 'URL', 'TRANSLATE']]
+        rows = [['WORD', 'UK PRONUNCIATION', 'US PRONUNCIATION', 'URL', 'TRANSLATE']]
 
-    with open(output_file, 'w') as file:
+    with open(temp_file, 'w') as file:
         writer = csv.writer(file, delimiter=',')
         writer.writerows(rows)
         for letter in [string.ascii_lowercase[i:i + 1] for i in range(0, 26, 1)]:
             words = get_ielts_words_by_prefix(letter)
             for en_zh in words:
                 en, zh = en_zh[0], en_zh[1]
-                if en not in exist_words:
+                if en not in exist_words and en[0] in string.ascii_letters:
                     uk, us, url = youdao.search_en_word(en)
                     row = [en, uk, us, url, zh]
                     print(row)  # for debug
                     rows.append(row)
                     writer.writerow(row)
 
-    os.system('cat ielts_words.tmp.csv | LC_COLLATE=C sort --ignore-case | uniq >ielts_words.csv')
+    rows[1:].sort()
+    with open(output_file, 'w') as file:
+        writer = csv.writer(file, delimiter=',')
+        writer.writerows(rows)
 
 
 if __name__ == '__main__':
