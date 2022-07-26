@@ -36,10 +36,15 @@ def search_zh_word(keyword: str) -> List[str]:
         'Referer': 'https://dict.youdao.com/?keyfrom=cidian',
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
-    response = requests.get(url, headers=headers)
-    html = response.text
-    part = '<span class="contentTitle"><a class="search-js" href="/w/(.+?)/#keyfrom=E2Ctranslation">'
-    return re.compile(part).findall(html)
+    result = []
+    try:
+        response = requests.get(url, headers=headers)
+        html = response.text
+        part = '<span class="contentTitle"><a class="search-js" href="/w/(.+?)/#keyfrom=E2Ctranslation">'
+        result = re.compile(part).findall(html)
+    except ConnectionError as e:
+        print(e)
+    return result
 
 
 def search_en_word(keyword: str) -> Tuple[str, str, str]:
@@ -48,6 +53,7 @@ def search_en_word(keyword: str) -> Tuple[str, str, str]:
     :param keyword:
     :return:
     """
+    symbols = []
     uk_symbol, us_symbol = '', ''
     url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(keyword)
     headers = {
@@ -55,10 +61,13 @@ def search_en_word(keyword: str) -> Tuple[str, str, str]:
         'Referer': 'https://dict.youdao.com/?keyfrom=cidian',
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
-    response = requests.get(url, headers=headers)
-    html = response.text
-    part = '<span class="phonetic">(.+?)</span>'
-    symbols = re.compile(part).findall(html)
+    try:
+        response = requests.get(url, headers=headers)
+        html = response.text
+        part = '<span class="phonetic">(.+?)</span>'
+        symbols = re.compile(part).findall(html)
+    except ConnectionError as e:
+        print(e)
     if len(symbols) >= 1:
         uk_symbol = symbols[0]
     if len(symbols) >= 2:
