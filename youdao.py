@@ -135,7 +135,7 @@ def write_md_table(rows: list[list[str]], filename: str):
 
 result_fmt = """{begin}
 {sep}{key}
-{sep}英 {uk}{sep}美 {us}
+{sep}英：{uk}{sep}美：{us}
 {sep}{trans}
 {sep}{url}
 {end}
