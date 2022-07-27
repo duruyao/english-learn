@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import string
 import sys
 import requests
 
@@ -17,9 +18,8 @@ def is_en_word(keyword: str) -> bool:
     :param keyword:
     :return:
     """
-    for letter in keyword:
-        if letter < 'A' or letter > 'z':
-            return False
+    if keyword[0] not in string.ascii_letters:
+        return False
     return True
 
 
