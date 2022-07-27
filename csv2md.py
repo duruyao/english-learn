@@ -31,19 +31,20 @@ def main():
     output_file = str(sys.argv[2])
 
     # pre-process input file
-    os.system('bash sort.sh {} --begin-line 2'.format(input_file))
+    os.system('bash sort.sh {input} --begin-line 2'.format(input=input_file))
 
     # read csv data
     with open(input_file, 'r') as file:
         reader = csv.reader(file, delimiter=',')
         for row in reader:
-            if youdao.is_en_word(row[0]):
-                csv_rows.append(row)
+            csv_rows.append(row)
 
-    # search phonetic symbols
-    for row in csv_rows:
-        if len(row) < 4 or is_empty(row[1]) or is_empty(row[2]) or is_empty(row[3]):
-            row[1:] = youdao.search_en_word(row[0])
+    # # search phonetic symbols
+    # for row in csv_rows:
+    #     if not all(v for v in row):
+    #         result = youdao.search_en_word(row[0])
+    #         row[:] = [result['key'], result['uk'], result['us'], result['url'],
+    #                   result['trans'][0][:12] + '...' if len(result['trans']) else '']
 
     # overwrite csv file
     with open(input_file, 'w') as file:
@@ -51,12 +52,16 @@ def main():
         writer.writerows(csv_rows)
 
     # csv rows to markdown rows
-    md_rows = [['', csv_rows[0][0], csv_rows[0][1], csv_rows[0][2]]]
+    md_rows = [['', csv_rows[0][0], csv_rows[0][1], csv_rows[0][2], csv_rows[0][4]]]
     cnt = 0
     for row in csv_rows[1:]:
         cnt += 1
         md_rows.append(
-            ['{} '.format(cnt), '[{}]({})'.format(row[0], row[3]), '`{}`'.format(row[1]), '`{}`'.format(row[2])]
+            ['{} '.format(cnt),
+             '[{}]({})'.format(row[0], row[3]),
+             '`{}`'.format(row[1]) if len(row[1]) else '',
+             '`{}`'.format(row[2]) if len(row[2]) else '',
+             '`{}`'.format(row[4]) if len(row[4]) else '']
         )
 
     # write markdown file
