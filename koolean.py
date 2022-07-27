@@ -82,9 +82,10 @@ def main():
             words = get_ielts_words_by_prefix(letter)
             for en_zh in words:
                 en, zh = en_zh[0], en_zh[1]
-                if en not in exist_words and en[0] in string.ascii_letters:
-                    uk, us, url = youdao.search_en_word(en)
-                    row = [en, uk, us, url, zh]
+                if en not in exist_words and youdao.is_en_word(en):
+                    result = youdao.search_en_word(en)
+                    row = [en, result['uk'], result['us'], result['url'],
+                           result['trans'][0][:12] + '...' if len(result['trans']) else '']
                     print(row)  # for debug
                     rows.append(row)
                     writer.writerow(row)
