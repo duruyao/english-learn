@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import re
-import string
 import sys
+import string
 import requests
+import urllib.parse
 
 
 def usage():
@@ -29,7 +30,7 @@ def search_zh_word(keyword: str) -> list[str]:
     :param keyword:
     :return:
     """
-    url = 'https://dict.youdao.com/w/{}/#keyfrom=dict2'.format(keyword)
+    url = 'https://dict.youdao.com/w/{}/#keyfrom=dict2'.format(urllib.parse.quote(keyword))
     headers = {
         'Host': 'dict.youdao.com',
         'Referer': 'https://dict.youdao.com/?keyfrom=cidian',
@@ -54,7 +55,7 @@ def search_en_word(keyword: str) -> dict:
     """
     uk_symbol, us_symbol = '', ''
     trans = []
-    url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(keyword)
+    url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(urllib.parse.quote(keyword))
     headers = {
         'Host': 'dict.youdao.com',
         'Referer': 'https://dict.youdao.com/?keyfrom=cidian',
