@@ -3,7 +3,6 @@
 import re
 import sys
 import requests
-from typing import Tuple, List
 
 
 def usage():
@@ -24,7 +23,7 @@ def is_en_word(keyword: str) -> bool:
     return True
 
 
-def search_zh_word(keyword: str) -> List[str]:
+def search_zh_word(keyword: str) -> list[str]:
     """
 
     :param keyword:
@@ -47,14 +46,14 @@ def search_zh_word(keyword: str) -> List[str]:
     return result
 
 
-def search_en_word(keyword: str) -> Tuple[str, str, str]:
+def search_en_word(keyword: str) -> dict:
     """
 
     :param keyword:
     :return:
     """
-    symbols = []
     uk_symbol, us_symbol = '', ''
+    trans = []
     url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(keyword)
     headers = {
         'Host': 'dict.youdao.com',
@@ -63,19 +62,17 @@ def search_en_word(keyword: str) -> Tuple[str, str, str]:
                       '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
     try:
         response = requests.get(url, headers=headers)
-        html = response.text
-        part = '<span class="phonetic">(.+?)</span>'
-        symbols = re.compile(part).findall(html)
-    except ConnectionError as e:
+        response.encoding = 'utf-8'
+        symbols = re.compile('<span class="phonetic">(.+?)</span>').findall(response.text.replace('\n', ''))
+        uk_symbol, us_symbol = symbols[0] if len(symbols) > 0 else '', symbols[1] if len(symbols) > 1 else ''
+        tmp = re.compile('<div class="trans-container">(.+?)</div>').findall(response.text.replace('\n', ''))
+        trans = re.compile('<li>(.+?)</li>').findall(tmp[0].replace('\n', ''))
+    except (ConnectionError, ValueError, IndexError) as e:
         print(e)
-    if len(symbols) >= 1:
-        uk_symbol = symbols[0]
-    if len(symbols) >= 2:
-        us_symbol = symbols[1]
-    return uk_symbol, us_symbol, url
+    return {'key': keyword, 'uk': uk_symbol, 'us': us_symbol, 'url': url, 'trans': trans}
 
 
-def column_widths(rows: List[List[str]]) -> List[int]:
+def column_widths(rows: list[list[str]]) -> list[int]:
     """
 
     :param rows:
@@ -93,7 +90,7 @@ def column_widths(rows: List[List[str]]) -> List[int]:
     return widths
 
 
-def rows_to_md_table(rows: List[List[str]]) -> List[str]:
+def rows_to_md_table(rows: list[list[str]]) -> list[str]:
     """
 
     :param rows:
@@ -124,15 +121,24 @@ def rows_to_md_table(rows: List[List[str]]) -> List[str]:
     return table
 
 
-def print_md_table(rows: List[List[str]]):
+def print_md_table(rows: list[list[str]]):
     for line in rows_to_md_table(rows):
         print(line)
 
 
-def write_md_table(rows: List[List[str]], filename: str):
+def write_md_table(rows: list[list[str]], filename: str):
     with open(filename, 'w') as file:
         for line in rows_to_md_table(rows):
             file.write(line + '\n')
+
+
+result_fmt = """{begin}
+{sep}{key}
+{sep}英 {uk}{sep}美 {us}
+{sep}{trans}
+{sep}{url}
+{end}
+"""
 
 
 def main():
@@ -140,18 +146,20 @@ def main():
         print(usage.__doc__.format(script=sys.argv[0]))
         sys.exit(0)
 
-    data = [['', 'KEYWORD', 'UK PRONUNCIATION', 'US PRONUNCIATION', 'URL']]
-
-    cnt = 0
     for word in sys.argv[1:]:
-        cnt += 1
         if is_en_word(word):
-            data.append([str(cnt), word, *search_en_word(word)])
+            results = search_en_word(word)
+            print(result_fmt.format(begin='{', end='}', sep='\t',
+                                    key=results['key'], url=results['url'],
+                                    uk=results['uk'], us=results['us'],
+                                    trans='\n\t'.join(results['trans'])))
         else:
             for en_word in search_zh_word(word):
-                data.append([str(cnt), en_word, *search_en_word(en_word)])
-
-    print_md_table(data)
+                results = search_en_word(en_word)
+                print(result_fmt.format(begin='{', end='}', sep='\t',
+                                        key=results['key'], url=results['url'],
+                                        uk=results['uk'], us=results['us'],
+                                        trans='\n\t'.join(results['trans'])))
 
 
 if __name__ == "__main__":
