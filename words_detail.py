@@ -1,7 +1,6 @@
 import re
-import string
 import sys
-
+import string
 import requests
 
 
@@ -27,5 +26,19 @@ def get_words_by_length(*lens: int) -> list[str]:
     return words
 
 
-if __name__ == '__main__':
+def usage():
+    """Usage:
+    python3 {script} <WORD_LENGTH>...
+    """
+
+
+def main():
+    if len(sys.argv) == 1:
+        print(usage.__doc__.format(script=sys.argv[0]))
+        sys.exit(0)
+
     print(get_words_by_length(*map(int, sys.argv[1:])))
+
+
+if __name__ == '__main__':
+    main()

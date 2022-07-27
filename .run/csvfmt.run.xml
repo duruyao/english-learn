@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="csv2md" type="PythonConfigurationType" factoryName="Python" singleton="false">
+  <configuration default="false" name="csvfmt" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
     <module name="english-us" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -11,8 +11,8 @@
     <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/csv2md.py" />
-    <option name="PARAMETERS" value="doc/words.csv doc/words.md" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/csvfmt.py" />
+    <option name="PARAMETERS" value="doc/ielts_words.csv doc/ielts_words.txt" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

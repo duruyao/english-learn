@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
+
 import csv
 import os
 import re
+import sys
+
 import youdao
 import string
 import requests
@@ -47,8 +51,17 @@ def get_ielts_words_by_prefix(prefix: str) -> list[list[str]]:
     return rows
 
 
+def usage():
+    """Usage:
+    python3 {script} <OUT_CSV_FILENAME>
+    """
+
+
 def main():
-    output_file, temp_file = 'ielts_words.csv', 'ielts_words.tmp.csv'
+    if not len(sys.argv) == 2:
+        print(usage.__doc__.format(script=sys.argv[0]))
+        sys.exit(0)
+    output_file, temp_file = sys.argv[1], sys.argv[1] + '.tmp'
 
     rows = []
     exist_words = set()

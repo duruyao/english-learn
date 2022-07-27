@@ -8,7 +8,7 @@ import youdao
 
 def usage():
     """Usage:
-    {} IN_CSV_FILENAME OUT_MD_FILENAME
+    python3 {script} <IN_CSV_FILENAME> <OUT_MD_FILENAME>
     """
 
 
@@ -23,7 +23,7 @@ def is_empty(var) -> bool:
 
 def main():
     if not len(sys.argv) == 3:
-        print(usage.__doc__.format(sys.argv[0]))
+        print(usage.__doc__.format(script=sys.argv[0]))
         sys.exit(0)
 
     csv_rows = []

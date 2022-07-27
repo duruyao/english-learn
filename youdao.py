@@ -8,7 +8,7 @@ from typing import Tuple, List
 
 def usage():
     """Usage:
-    {} <WORD_EN|WORD_ZH>...
+    python3 {script} <WORD_EN|WORD_ZH>...
     """
 
 
@@ -137,7 +137,7 @@ def write_md_table(rows: List[List[str]], filename: str):
 
 def main():
     if len(sys.argv) == 1:
-        print(usage.__doc__.format(sys.argv[0]))
+        print(usage.__doc__.format(script=sys.argv[0]))
         sys.exit(0)
 
     data = [['', 'KEYWORD', 'UK PRONUNCIATION', 'US PRONUNCIATION', 'URL']]
