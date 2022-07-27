@@ -148,18 +148,18 @@ def main():
 
     for word in sys.argv[1:]:
         if is_en_word(word):
-            results = search_en_word(word)
+            result = search_en_word(word)
             print(result_fmt.format(begin='{', end='}', sep='\t',
-                                    key=results['key'], url=results['url'],
-                                    uk=results['uk'], us=results['us'],
-                                    trans='\n\t'.join(results['trans'])))
+                                    key=result['key'], url=result['url'],
+                                    uk=result['uk'], us=result['us'],
+                                    trans='\n\t'.join(result['trans'])))
         else:
             for en_word in search_zh_word(word):
-                results = search_en_word(en_word)
+                result = search_en_word(en_word)
                 print(result_fmt.format(begin='{', end='}', sep='\t',
-                                        key=results['key'], url=results['url'],
-                                        uk=results['uk'], us=results['us'],
-                                        trans='\n\t'.join(results['trans'])))
+                                        key=result['key'], url=result['url'],
+                                        uk=result['uk'], us=result['us'],
+                                        trans='\n\t'.join(result['trans'])))
 
 
 if __name__ == "__main__":
