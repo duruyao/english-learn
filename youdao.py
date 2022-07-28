@@ -69,7 +69,7 @@ def search_en_word(keyword: str) -> dict:
         symbols = re.compile('<span class="phonetic">(.+?)</span>').findall(html)
         uk, us = symbols[0] if len(symbols) > 0 else '', symbols[1] if len(symbols) > 1 else ''
         tmp = re.compile('<div class="trans-container">(.+?)</div>').findall(html)
-        trans = re.compile('<li>(.+?)</li>').findall(tmp[0])
+        trans = re.compile('<li>(.+?)</li>').findall(tmp[0]) if len(tmp) else []
         additions = re.compile('<p class="additional">\[ +(.+?) +\]</p').findall(html)
         if len(additions):
             addition = additions[0]
@@ -142,14 +142,13 @@ def write_md_table(rows: list[list[str]], filename: str):
             file.write(line + '\n')
 
 
-result_fmt = """{begin}
-{sep}{key}
-{sep}英 {uk} 美 {us}
-{sep}{trans}
-{sep}{addition}
-{sep}{url}
-{end}
-"""
+result_fmt = """\
+├──
+│   {key}
+│   {uk} {us}
+│   {trans}
+│   {addition}
+│   {url}"""
 
 
 def main():
@@ -157,22 +156,24 @@ def main():
         print(usage.__doc__.format(script=sys.argv[0]))
         sys.exit(0)
 
+    print('.')
     for word in sys.argv[1:]:
         if is_en_word(word):
             result = search_en_word(word)
-            print(result_fmt.format(begin='{', end='}', sep='    ',
-                                    key=result['key'], url=result['url'],
-                                    uk=result['uk'], us=result['us'],
-                                    trans='\n    '.join(result['trans']),
-                                    addition=result['addition']))
+            print(result_fmt.format(key=result['key'],
+                                    uk='英 ' + result['uk'] if len(result['uk']) else '',
+                                    us='美 ' + result['us'] if len(result['us']) else '',
+                                    trans='\n│   '.join(result['trans']),
+                                    addition=result['addition'], url=result['url']))
         else:
             for en_word in search_zh_word(word):
                 result = search_en_word(en_word)
-                print(result_fmt.format(begin='{', end='}', sep='    ',
-                                        key=result['key'], url=result['url'],
-                                        uk=result['uk'], us=result['us'],
-                                        trans='\n    '.join(result['trans']),
-                                        addition=result['addition']))
+                print(result_fmt.format(key=result['key'],
+                                        uk='英 ' + result['uk'] if len(result['uk']) else '',
+                                        us='美 ' + result['us'] if len(result['us']) else '',
+                                        trans='\n│   '.join(result['trans']),
+                                        addition=result['addition'], url=result['url']))
+    print('└──')
 
 
 if __name__ == "__main__":
