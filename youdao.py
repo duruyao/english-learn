@@ -53,8 +53,9 @@ def search_en_word(keyword: str) -> dict:
     :param keyword:
     :return:
     """
-    uk_symbol, us_symbol = '', ''
+    uk, us = '', ''
     trans = []
+    addition = ''
     url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(urllib.parse.quote(keyword))
     headers = {
         'Host': 'dict.youdao.com',
@@ -64,13 +65,21 @@ def search_en_word(keyword: str) -> dict:
     try:
         response = requests.get(url, headers=headers)
         response.encoding = 'utf-8'
-        symbols = re.compile('<span class="phonetic">(.+?)</span>').findall(response.text.replace('\n', ''))
-        uk_symbol, us_symbol = symbols[0] if len(symbols) > 0 else '', symbols[1] if len(symbols) > 1 else ''
-        tmp = re.compile('<div class="trans-container">(.+?)</div>').findall(response.text.replace('\n', ''))
-        trans = re.compile('<li>(.+?)</li>').findall(tmp[0].replace('\n', ''))
+        html = response.text.replace('\n', '')
+        symbols = re.compile('<span class="phonetic">(.+?)</span>').findall(html)
+        uk, us = symbols[0] if len(symbols) > 0 else '', symbols[1] if len(symbols) > 1 else ''
+        tmp = re.compile('<div class="trans-container">(.+?)</div>').findall(html)
+        trans = re.compile('<li>(.+?)</li>').findall(tmp[0])
+        additions = re.compile('<p class="additional">\[ +(.+?) +\]</p').findall(html)
+        if len(additions):
+            addition = additions[0]
+            while '  ' in addition:
+                addition = addition.replace('  ', ' ')
+            addition = '[{}]'.format(addition)
     except (ConnectionError, ValueError, IndexError) as e:
         print(e)
-    return {'key': keyword, 'uk': uk_symbol, 'us': us_symbol, 'url': url, 'trans': trans}
+    url = 'https://dict.youdao.com/result?word={}&lang=en'.format(urllib.parse.quote(keyword))
+    return {'key': keyword, 'uk': uk, 'us': us, 'url': url, 'trans': trans, 'addition': addition}
 
 
 def column_widths(rows: list[list[str]]) -> list[int]:
@@ -135,8 +144,9 @@ def write_md_table(rows: list[list[str]], filename: str):
 
 result_fmt = """{begin}
 {sep}{key}
-{sep}英：{uk}{sep}美：{us}
+{sep}英 {uk} 美 {us}
 {sep}{trans}
+{sep}{addition}
 {sep}{url}
 {end}
 """
@@ -150,17 +160,19 @@ def main():
     for word in sys.argv[1:]:
         if is_en_word(word):
             result = search_en_word(word)
-            print(result_fmt.format(begin='{', end='}', sep='\t',
+            print(result_fmt.format(begin='{', end='}', sep='    ',
                                     key=result['key'], url=result['url'],
                                     uk=result['uk'], us=result['us'],
-                                    trans='\n\t'.join(result['trans'])))
+                                    trans='\n    '.join(result['trans']),
+                                    addition=result['addition']))
         else:
             for en_word in search_zh_word(word):
                 result = search_en_word(en_word)
-                print(result_fmt.format(begin='{', end='}', sep='\t',
+                print(result_fmt.format(begin='{', end='}', sep='    ',
                                         key=result['key'], url=result['url'],
                                         uk=result['uk'], us=result['us'],
-                                        trans='\n\t'.join(result['trans'])))
+                                        trans='\n    '.join(result['trans']),
+                                        addition=result['addition']))
 
 
 if __name__ == "__main__":
