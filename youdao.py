@@ -82,73 +82,14 @@ def search_en_word(keyword: str) -> dict:
     return {'key': keyword, 'uk': uk, 'us': us, 'url': url, 'trans': trans, 'addition': addition}
 
 
-def column_widths(rows: list[list[str]]) -> list[int]:
-    """
-
-    :param rows:
-    :return:
-    """
-    widths = []
-    for row in rows:
-        idx = 0
-        for item in row:
-            if idx + 1 > len(widths):
-                widths.append(0)
-            if len(item) > widths[idx]:
-                widths[idx] = len(item)
-            idx += 1
-    return widths
-
-
-def rows_to_md_table(rows: list[list[str]]) -> list[str]:
-    """
-
-    :param rows:
-    :return:
-    """
-    table = []
-    widths = column_widths(rows)
-
-    # generate dividing line
-    line = '|'
-    for width in widths:
-        line += ('-{:-<' + str(width) + '}-|').format('')
-    table.append(line)
-
-    # generate contents
-    for row in rows:
-        line = '|'
-        idx = 0
-        for item in row:
-            if idx:
-                line += (' {:<' + str(widths[idx]) + '} |').format(item)
-            else:
-                line += (' {:>' + str(widths[idx]) + '} |').format(item)
-            idx += 1
-        table.append(line)
-
-    table[0], table[1] = table[1], table[0]
-    return table
-
-
-def print_md_table(rows: list[list[str]]):
-    for line in rows_to_md_table(rows):
-        print(line)
-
-
-def write_md_table(rows: list[list[str]], filename: str):
-    with open(filename, 'w') as file:
-        for line in rows_to_md_table(rows):
-            file.write(line + '\n')
-
-
 result_fmt = """\
-├──
+{begin}\
 │   {key}
 │   {uk} {us}
 │   {trans}
 │   {addition}
-│   {url}"""
+│   {url}\
+{end}"""
 
 
 def main():
@@ -156,24 +97,28 @@ def main():
         print(usage.__doc__.format(script=sys.argv[0]))
         sys.exit(0)
 
-    print('.')
     for word in sys.argv[1:]:
         if is_en_word(word):
             result = search_en_word(word)
             print(result_fmt.format(key=result['key'],
+                                    begin='┌──\n', end='\n└──',
                                     uk='英 ' + result['uk'] if len(result['uk']) else '',
                                     us='美 ' + result['us'] if len(result['us']) else '',
                                     trans='\n│   '.join(result['trans']),
                                     addition=result['addition'], url=result['url']))
         else:
-            for en_word in search_zh_word(word):
+            en_words = search_zh_word(word)
+            cnt = 1
+            for en_word in en_words:
                 result = search_en_word(en_word)
                 print(result_fmt.format(key=result['key'],
+                                        begin='┌──\n' if cnt == 1 else '├──\n',
+                                        end='\n└──' if cnt == len(en_words) else '',
                                         uk='英 ' + result['uk'] if len(result['uk']) else '',
                                         us='美 ' + result['us'] if len(result['us']) else '',
                                         trans='\n│   '.join(result['trans']),
                                         addition=result['addition'], url=result['url']))
-    print('└──')
+                cnt += 1
 
 
 if __name__ == "__main__":

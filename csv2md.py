@@ -3,7 +3,6 @@
 import os
 import sys
 import csv
-import youdao
 
 
 def usage():
@@ -19,6 +18,66 @@ def is_empty(var) -> bool:
     :return:
     """
     return len(var) == 0
+
+
+def column_widths(rows: list[list[str]]) -> list[int]:
+    """
+
+    :param rows:
+    :return:
+    """
+    widths = []
+    for row in rows:
+        idx = 0
+        for item in row:
+            if idx + 1 > len(widths):
+                widths.append(0)
+            if len(item) > widths[idx]:
+                widths[idx] = len(item)
+            idx += 1
+    return widths
+
+
+def rows_to_md_table(rows: list[list[str]]) -> list[str]:
+    """
+
+    :param rows:
+    :return:
+    """
+    table = []
+    widths = column_widths(rows)
+
+    # generate dividing line
+    line = '|'
+    for width in widths:
+        line += ('-{:-<' + str(width) + '}-|').format('')
+    table.append(line)
+
+    # generate contents
+    for row in rows:
+        line = '|'
+        idx = 0
+        for item in row:
+            if idx:
+                line += (' {:<' + str(widths[idx]) + '} |').format(item)
+            else:
+                line += (' {:>' + str(widths[idx]) + '} |').format(item)
+            idx += 1
+        table.append(line)
+
+    table[0], table[1] = table[1], table[0]
+    return table
+
+
+def print_md_table(rows: list[list[str]]):
+    for line in rows_to_md_table(rows):
+        print(line)
+
+
+def write_md_table(rows: list[list[str]], filename: str):
+    with open(filename, 'w') as file:
+        for line in rows_to_md_table(rows):
+            file.write(line + '\n')
 
 
 def main():
@@ -65,7 +124,7 @@ def main():
         )
 
     # write markdown file
-    youdao.write_md_table(md_rows, output_file)
+    write_md_table(md_rows, output_file)
 
 
 if __name__ == "__main__":
