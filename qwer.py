@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# date:   2022-07-08
-# author: duruyao@gmail.com
-# desc:   command line game for typing practice
 import os
 import sys
 import time
@@ -11,6 +8,11 @@ import string
 import getopt
 import pathlib
 import datetime
+
+
+# date:   2022-07-08
+# author: duruyao@gmail.com
+# desc:   command line game for typing practice
 
 
 def info_ln(values):
@@ -137,7 +139,6 @@ def main():
     for line in lines[:2]:
         print('        ' + line, end='')
     lines[:] = lines[2:]
-    # lines.remove()
     lines.sort(reverse=True)
     for line in lines:
         print('        ' + line, end='')
