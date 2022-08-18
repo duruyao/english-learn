@@ -7,6 +7,10 @@ import requests
 import urllib.parse
 
 
+def error_ln(values):
+    print('\033[1;32;31m', values, '\033[m', sep='', end='\n')
+
+
 def usage():
     """Usage:
     python3 {script} <WORD_EN|WORD_ZH>...
@@ -42,8 +46,8 @@ def search_zh_word(keyword: str) -> list[str]:
         html = response.text
         part = '<span class="contentTitle"><a class="search-js" href="/w/(.+?)/#keyfrom=E2Ctranslation">'
         result = re.compile(part).findall(html)
-    except ConnectionError as e:
-        print(e)
+    except BaseException as error:
+        error_ln(f'Unexpected {error = }, {type(error) = }')
     return result
 
 
@@ -76,8 +80,8 @@ def search_en_word(keyword: str) -> dict:
             while '  ' in addition:
                 addition = addition.replace('  ', ' ')
             addition = '[{}]'.format(addition)
-    except (ConnectionError, ValueError, IndexError) as e:
-        print(e)
+    except BaseException as error:
+        error_ln(f'Unexpected {error = }, {type(error) = }')
     url = 'https://dict.youdao.com/result?word={}&lang=en'.format(urllib.parse.quote(keyword))
     return {'key': keyword, 'uk': uk, 'us': us, 'url': url, 'trans': trans, 'addition': addition}
 
