@@ -6,6 +6,7 @@ import time
 import random
 import string
 import getopt
+import signal
 import pathlib
 import datetime
 
@@ -55,7 +56,14 @@ def rand_str(chars=string.ascii_lowercase + ',./;', length=10, sep=''):
     return sep.join(random.choice(chars) for _ in range(length))
 
 
+def signal_handler(sig, frame):
+    print('\nExit The Game')
+    sys.exit(0)
+
+
 def main():
+    signal.signal(signal.SIGINT, signal_handler)
+
     diff = 'easy'
     length = 1
     batch = 100
