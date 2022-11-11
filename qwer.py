@@ -78,7 +78,7 @@ def rand_str(chars=string.ascii_lowercase + ',./;', length=10, sep=''):
 
 
 def signal_handler(sig, frame):
-    print('\n\nExit The Game')
+    print('\n\nExit The Game...')
     sys.exit(0)
 
 
@@ -142,7 +142,7 @@ def main():
         begin = datetime.datetime.now()
         while answer != word:
             print('      Q: ', end='')
-            trace_ln(word, end='    ')
+            trace_ln('{:<20}'.format(word), end=' ')
             debug_ln(f'{us} {trans} {url}')
             print('      A: ', end='')
             answer = input()
