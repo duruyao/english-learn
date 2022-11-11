@@ -1,7 +1,8 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3
 
 import os
 import sys
+import csv
 import time
 import random
 import string
@@ -9,6 +10,9 @@ import getopt
 import signal
 import pathlib
 import datetime
+import urllib.parse
+from typing import List
+from random import randrange
 
 
 # date:   2022-07-08
@@ -16,40 +20,57 @@ import datetime
 # desc:   command line game for typing practice
 
 
-def info_ln(values):
-    print('\033[1;32;32m', values, '\033[m', sep='', end='\n')
+def debug_ln(values, end='\n'):
+    print('\033[1;32;35m', values, '\033[m', sep='', end=end)
 
 
-def trace_ln(values):
-    print('\033[1;32;34m', values, '\033[m', sep='', end='\n')
+def info_ln(values, end='\n'):
+    print('\033[1;32;32m', values, '\033[m', sep='', end=end)
 
 
-def warning_ln(values):
-    print('\033[1;32;33m', values, '\033[m', sep='', end='\n')
+def trace_ln(values, end='\n'):
+    print('\033[1;32;34m', values, '\033[m', sep='', end=end)
 
 
-def error_ln(values):
-    print('\033[1;32;31m', values, '\033[m', sep='', end='\n')
+def warning_ln(values, end='\n'):
+    print('\033[1;32;33m', values, '\033[m', sep='', end=end)
+
+
+def error_ln(values, end='\n'):
+    print('\033[1;32;31m', values, '\033[m', sep='', end=end)
 
 
 def show_usage():
-    """Usage: python3 {script} [OPTIONS]
+    """Usage: {execute} [OPTIONS]
 
 Command line game for typing practice
 
 Options:
-  -b, --batch=<N>                   Set batch size (default: 100)
-  -d, --diff=<easy|normal|hard>     Select game difficulty (default: easy)
-  -l, --length=<N>                  Set length of random string (default: 1)
-  -h, --help                        Display this help message
+  -b, --batch=<N>                       Set batch size (default: 20)
+  -d, --diff=<easy|normal|hard|ielts>   Select game difficulty (default: ielts)
+  -l, --length=<N>                      Set the length of random string while diff != ielts (default: 1)
+  -h, --help                            Display this help message
 
 Examples:
-  python3 {script}
-  python3 {script} -l 1 -b 100 -d easy
-  python3 {script} --length=1 --batch=100 --diff=easy
+  {execute}
+  {execute} -b 20 -d ielts
+  {execute} --batch=20 --diff=ielts
+  {execute} -l 1 -b 20 -d easy
+  {execute} --length=1 --batch=20 --diff=easy
     """
-    script = os.path.realpath(sys.argv[0])
-    print(show_usage.__doc__.format(script=script))
+    execute = 'qwer' if '.py' not in sys.argv[0] else f'python3 {os.path.realpath(sys.argv[0])}'
+    print(show_usage.__doc__.format(execute=execute))
+
+
+def get_ielts_words() -> List[List[str]]:
+    result = []
+    new_url_fmt = 'https://dict.youdao.com/result?word={}&lang=en'
+    with open(f'{os.path.dirname(os.path.realpath(sys.argv[0]))}/doc/ielts_words.csv', 'r') as file:
+        reader = csv.DictReader(file, delimiter=',')
+        for row in reader:
+            result.append([row['WORD'], row['US PRONUNCIATION'],
+                           row['TRANSLATE'], new_url_fmt.format(urllib.parse.quote(row['WORD']))])
+    return result
 
 
 def rand_str(chars=string.ascii_lowercase + ',./;', length=10, sep=''):
@@ -57,27 +78,30 @@ def rand_str(chars=string.ascii_lowercase + ',./;', length=10, sep=''):
 
 
 def signal_handler(sig, frame):
-    print('\nExit The Game')
+    print('\n\nExit The Game')
     sys.exit(0)
 
 
 def main():
+    # handle CTRL_C
     signal.signal(signal.SIGINT, signal_handler)
 
-    diff = 'easy'
+    # set default values
+    diff = 'ielts'
     length = 1
-    batch = 100
+    batch = 20
     thesaurus = {'easy': string.ascii_lowercase + ',./;',
                  'normal': string.ascii_letters + string.digits + ',./;',
                  'hard': string.printable}
+    ielts_words = get_ielts_words()
 
+    # parse arguments
     try:
         opts, args = getopt.getopt(sys.argv[1:], "b:d:l:h", ["batch=", "diff=", "length=", "help"])
     except getopt.GetoptError as e:
         error_ln(e)
         show_usage()
         sys.exit(1)
-
     for opt_key, opt_value in opts:
         if opt_key in ('-b', '--batch'):
             batch = int(opt_value)
@@ -89,6 +113,7 @@ def main():
             show_usage()
             sys.exit(0)
 
+    length = 0 if diff == 'ielts' else length
     level = '{}-{}-{}'.format(diff, length, batch)
     history_dir = '{}/.qwer'.format(os.path.expanduser('~'))
     history_file = '{}/{}.md'.format(history_dir, level)
@@ -99,6 +124,7 @@ def main():
             file.write('| SCORE  | LEVEL          | DATE                | GAMER            |\n')
             file.write('|--------|----------------|---------------------|------------------|\n')
 
+    # set default values
     gain = 0
     loss = 0
     gamer = 'someone'
@@ -110,18 +136,21 @@ def main():
 
     for i in range(batch):
         print('[{:>3}]'.format(i + 1))
-        word = rand_str(chars=thesaurus[diff], length=length)
+        word, us, trans, url = ielts_words[randrange(len(ielts_words))] if diff == 'ielts' \
+            else [rand_str(chars=thesaurus[diff], length=length), '', '', '']
         answer = ''
         begin = datetime.datetime.now()
         while answer != word:
             print('      Q: ', end='')
-            trace_ln(word)
+            trace_ln(word, end='    ')
+            debug_ln(f'{us} {trans} {url}')
             print('      A: ', end='')
             answer = input()
+            us, trans, url = ['', '', '']
         end = datetime.datetime.now()
         duration = end - begin
         print('      T: ', end='')
-        if duration.total_seconds() < length + 1:
+        if duration.total_seconds() < len(word) + 0.5:
             info_ln(duration)
             gain += 1
         else:
