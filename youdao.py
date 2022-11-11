@@ -1,20 +1,24 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3
 
+import os
 import re
 import sys
 import string
 import requests
 import urllib.parse
+from typing import List, Dict
 
 
-def error_ln(values):
-    print('\033[1;32;31m', values, '\033[m', sep='', end='\n')
+def error_ln(values, end='\n'):
+    print('\033[1;32;31m', values, '\033[m', sep='', end=end)
 
 
-def usage():
+def show_usage():
     """Usage:
-    python3 {script} <WORD_EN|WORD_ZH>...
+    {execute} <WORD_EN|WORD_ZH>...
     """
+    execute = 'youdao' if '.py' not in sys.argv[0] else f'python3 {os.path.realpath(sys.argv[0])}'
+    print(show_usage.__doc__.format(execute=execute))
 
 
 def is_en_word(keyword: str) -> bool:
@@ -28,7 +32,7 @@ def is_en_word(keyword: str) -> bool:
     return True
 
 
-def search_zh_word(keyword: str) -> list[str]:
+def search_zh_word(keyword: str) -> List[str]:
     """
 
     :param keyword:
@@ -51,7 +55,7 @@ def search_zh_word(keyword: str) -> list[str]:
     return result
 
 
-def search_en_word(keyword: str) -> dict:
+def search_en_word(keyword: str) -> Dict[str, str]:
     """
 
     :param keyword:
@@ -97,8 +101,8 @@ result_fmt = """\
 
 
 def main():
-    if len(sys.argv) == 1:
-        print(usage.__doc__.format(script=sys.argv[0]))
+    if len(sys.argv) == 1 or '-h' in sys.argv[1:] or '--help' in sys.argv[1:]:
+        show_usage()
         sys.exit(0)
 
     for word in sys.argv[1:]:
