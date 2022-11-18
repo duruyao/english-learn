@@ -1,5 +1,10 @@
 # translate-cli
 
+## Pre-requirements
+
+- [python3](https://www.python.org/)
+- python3-pip
+
 ## Install
 
 ```shell
