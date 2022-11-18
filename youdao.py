@@ -7,7 +7,7 @@ import csv
 import string
 import requests
 import urllib.parse
-from typing import List, Dict, Union
+from typing import List, Tuple, Dict, Union
 
 from println import warning_ln
 
@@ -65,7 +65,7 @@ def save_cache(data: Dict, csv_basename: str, csv_dir: str = f'{app_home()}/cach
         writer.writerow(data)
 
 
-def search_zh_online(keyword: str, cache: bool = True) -> List[str]:
+def search_zh_online(keyword: str, cache: bool = True) -> Tuple[List[str], bool]:
     """
 
     :param keyword:
@@ -85,32 +85,31 @@ def search_zh_online(keyword: str, cache: bool = True) -> List[str]:
         result = re.compile(part).findall(html)
         if cache and result:
             save_cache({'key': keyword, 'result': result}, csv_basename='search_zh_online.csv')
-        return result
+        return result if result else [''], result is not []
     except BaseException as error:
         warning_ln(f'Unexpected {error = }, {type(error) = }')
-        return []
+        return [''], False
 
 
 def search_zh_offline(keyword: str,
-                      csv_basename: str = 'search_zh_online.csv', csv_dir: str = f'{app_home()}/cache') -> List[str]:
+                      csv_basename: str = 'search_zh_online.csv',
+                      csv_dir: str = f'{app_home()}/cache') -> Tuple[List[str], bool]:
     if os.path.exists(f'{csv_dir}/{csv_basename}'):
         with open(f'{csv_dir}/{csv_basename}', 'r') as file:
             reader = csv.DictReader(file)
             for record in reader:
                 if record['key'] == keyword:
-                    return record['result'][2:-2].split('\', \'')
-    return ['']
+                    return record['result'][2:-2].split('\', \''), True
+    return [], False
 
 
-def search_en_online(keyword: str, cache: bool = True) -> Dict[str, Union[str, List[str]]]:
+def search_en_online(keyword: str, cache: bool = True) -> Tuple[Dict[str, Union[str, List[str]]], bool]:
     """
 
     :param keyword:
     :param cache:
     :return:
     """
-    if not keyword:
-        return {'key': '', 'uk': '', 'us': '', 'url': '', 'trans': '', 'addition': ''}
     url = 'https://dict.youdao.com/w/eng/{}/#keyfrom=dict2'.format(urllib.parse.quote(keyword))
     headers = {
         'Host': 'dict.youdao.com',
@@ -126,8 +125,6 @@ def search_en_online(keyword: str, cache: bool = True) -> Dict[str, Union[str, L
         url = 'https://dict.youdao.com/result?word={}&lang=en'.format(urllib.parse.quote(keyword))
         tmp = re.compile('<div class="trans-container">(.+?)</div>').findall(html)
         trans = re.compile('<li>(.+?)</li>').findall(tmp[0]) if len(tmp) else []
-        if not trans:
-            return {}
         additions = re.compile('<p class="additional">\[ +(.+?) +\]</p').findall(html)
         addition = ''
         if len(additions):
@@ -136,25 +133,27 @@ def search_en_online(keyword: str, cache: bool = True) -> Dict[str, Union[str, L
                 addition = addition.replace('  ', ' ')
             addition = '[{}]'.format(addition)
         result = {'key': keyword, 'uk': uk, 'us': us, 'url': url, 'trans': trans, 'addition': addition}
-        if cache:
+        if cache and trans:
             save_cache(result, csv_basename='search_en_online.csv')
-        return result
+        return result, trans is not []
     except BaseException as error:
         warning_ln(f'Unexpected {error = }, {type(error) = }')
-        return {}
+        return {'key': keyword, 'uk': '', 'us': '', 'url': '', 'trans': '', 'addition': ''}, False
 
 
 def search_en_offline(keyword: str,
                       csv_basename: str = 'search_en_online.csv',
-                      csv_dir: str = f'{app_home()}/cache') -> Dict[str, Union[str, List[str]]]:
+                      csv_dir: str = f'{app_home()}/cache') -> Tuple[Dict[str, Union[str, List[str]]], bool]:
+    if not keyword:
+        return {'key': keyword, 'uk': '', 'us': '', 'url': '', 'trans': '', 'addition': ''}, True
     if os.path.exists(f'{csv_dir}/{csv_basename}'):
         with open(f'{csv_dir}/{csv_basename}', 'r') as file:
             reader = csv.DictReader(file)
             for record in reader:
                 if record['key'] == keyword:
                     record['trans'] = record['trans'][2:-2].split('\', \'')
-                    return record
-    return {'key': keyword, 'uk': '', 'us': '', 'url': '', 'trans': [], 'addition': ''}
+                    return record, True
+    return {}, False
 
 
 def search_words(*args: str):
@@ -174,9 +173,8 @@ def search_words(*args: str):
 
     for word in args:
         if is_en(word):
-            # TODO: change
-            result = search_en_online(word)
-            result = search_en_offline(word) if not result else result
+            (result, ok) = search_en_offline(word)
+            (result, ok) = search_en_online(word) if not ok else (result, ok)
             print(result_fmt.format(key=result['key'],
                                     begin='┌──\n', end='\n└──',
                                     uk='英 ' + result['uk'] if len(result['uk']) else '',
@@ -184,12 +182,12 @@ def search_words(*args: str):
                                     trans='\n│   '.join(result['trans']),
                                     addition=result['addition'], url=result['url']))
         else:
-            en_words = search_zh_online(word)
-            en_words = search_zh_offline(word) if not en_words else en_words
+            (en_words, ok) = search_zh_offline(word)
+            (en_words, ok) = search_zh_online(word) if not ok else (en_words, ok)
             cnt = 1
             for en_word in en_words:
-                result = search_en_online(en_word)
-                result = search_en_offline(en_word) if not result else result
+                (result, ok) = search_en_offline(en_word)
+                (result, ok) = search_en_online(en_word) if not ok else (result, ok)
                 print(result_fmt.format(key=result['key'],
                                         begin='┌──\n' if cnt == 1 else '├──\n',
                                         end='\n└──' if cnt == len(en_words) else '',
