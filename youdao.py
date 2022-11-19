@@ -52,6 +52,7 @@ def is_en(keyword: str) -> bool:
 def save_cache(data: Dict, csv_basename: str, csv_dir: str = f'{app_home()}/cache'):
     csv_filename = f'{csv_dir}/{csv_basename}'
     if not os.path.exists(csv_filename):
+        os.makedirs(os.path.dirname(csv_filename), exist_ok=True)
         with open(csv_filename, 'a', newline='\n') as file:
             writer = csv.DictWriter(file, fieldnames=list(data.keys()))
             writer.writeheader()
