@@ -22,7 +22,7 @@ def show_usage():
     :return:
     """
     usage = """Usage:
-    {execute} <WORD_EN|WORD_ZH>...
+    {execute} <EN_WORD|ZH-CN_WORD> ...
     """
     execute = f'python3 {sys.argv[0]}' if '.py' == sys.argv[0][-3:] else os.path.basename(sys.argv[0])
     print(usage.format(execute=execute))

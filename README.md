@@ -11,6 +11,15 @@
 bash install.sh
 ```
 
+## Usage
+
+```shell
+$ trans --help
+Usage:
+    trans <EN_WORD|ZH-CN_WORD> ...
+
+```
+
 ## Example
 
 ```shell
