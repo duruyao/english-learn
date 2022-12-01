@@ -5,6 +5,7 @@ import re
 import sys
 import csv
 import string
+import signal
 import requests
 import urllib.parse
 from typing import List, Tuple, Dict, Union
@@ -22,10 +23,15 @@ def show_usage():
     :return:
     """
     usage = """Usage:
-    {execute} <EN_WORD|ZH-CN_WORD> ...
+    {execute} [<WORD_EN|WORD_ZH> ...]
     """
     execute = f'python3 {sys.argv[0]}' if '.py' == sys.argv[0][-3:] else os.path.basename(sys.argv[0])
     print(usage.format(execute=execute))
+
+
+def signal_handler(sig, frame):
+    print()
+    sys.exit(0)
 
 
 def handle_args():
@@ -33,9 +39,22 @@ def handle_args():
 
     :return:
     """
-    if len(sys.argv) == 1 or '-h' in sys.argv[1:] or '--help' in sys.argv[1:]:
+    words = sys.argv[1:]
+    signal.signal(signal.SIGINT, signal_handler)
+    if '-h' in words or '--help' in words:
         show_usage()
-        sys.exit(0)
+        return
+    if not words:
+        print('Youdao Dictionary CLI Interactor',
+              '────────────────────────────────',
+              'Type the words (zh-cn, en) you want to query.',
+              'Type "exit()", "quit()" or CTRL-C to exit the interactor.', sep='\n')
+        while True:
+            words = input('>>> ').split(' ')
+            if 'exit()' in words or 'quit()' in words:
+                return
+            search_words(*words)
+    search_words(*words)
 
 
 def is_en(keyword: str) -> bool:
@@ -201,4 +220,3 @@ def search_words(*args: str):
 
 if __name__ == "__main__":
     handle_args()
-    search_words(*sys.argv[1:])
