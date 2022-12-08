@@ -51,6 +51,7 @@ def handle_args():
               'Type "exit()", "quit()" or CTRL-C to exit the interactor.', sep='\n')
         while True:
             words = input('>>> ').split(' ')
+            words = [w for w in words if w]
             if 'exit()' in words or 'quit()' in words:
                 return
             search_words(*words)
@@ -63,7 +64,7 @@ def is_en(keyword: str) -> bool:
     :param keyword:
     :return:
     """
-    if keyword[0] not in string.ascii_letters:
+    if not keyword or keyword[0] not in string.ascii_letters:
         return False
     return True
 
