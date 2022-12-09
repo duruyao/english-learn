@@ -17,6 +17,10 @@ def app_home() -> str:
     return os.path.dirname(os.path.realpath(sys.argv[0]))
 
 
+def execute() -> str:
+    return f'python3 {sys.argv[0]}' if '.py' == sys.argv[0][-3:] else os.path.basename(sys.argv[0])
+
+
 def show_usage():
     """
 
@@ -25,8 +29,7 @@ def show_usage():
     usage = """Usage:
     {execute} [<WORD_EN|WORD_ZH> ...]
     """
-    execute = f'python3 {sys.argv[0]}' if '.py' == sys.argv[0][-3:] else os.path.basename(sys.argv[0])
-    print(usage.format(execute=execute))
+    print(usage.format(execute=execute()))
 
 
 def signal_handler(sig, frame):
@@ -50,11 +53,10 @@ def handle_args():
               'Type the words (zh-cn, en) you want to query.',
               'Type "exit()", "quit()" or CTRL-C to exit the interactor.', sep='\n')
         while True:
-            words = input('>>> ').split(' ')
-            words = [w for w in words if w]
-            if 'exit()' in words or 'quit()' in words:
+            words = input('>>> ')
+            if 'exit()' in words or 'quit()' in words.split():
                 return
-            search_words(*words)
+            os.system(f'{execute()} {words}')
     search_words(*words)
 
 
