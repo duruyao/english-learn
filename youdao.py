@@ -143,12 +143,12 @@ def search_en_online(keyword: str, cache: bool = True) -> Tuple[Dict[str, Union[
         response = requests.get(url, headers=headers)
         response.encoding = 'utf-8'
         html = response.text.replace('\n', '')
-        symbols = re.compile('<span class="phonetic">(.+?)</span>').findall(html)
+        symbols = re.compile(r'<span class="phonetic">(.+?)</span>').findall(html)
         uk, us = symbols[0] if len(symbols) > 0 else '', symbols[1] if len(symbols) > 1 else ''
         url = 'https://dict.youdao.com/result?word={}&lang=en'.format(urllib.parse.quote(keyword))
-        tmp = re.compile('<div class="trans-container">(.+?)</div>').findall(html)
-        trans = re.compile('<li>(.+?)</li>').findall(tmp[0]) if len(tmp) else []
-        additions = re.compile('<p class="additional">\[ +(.+?) +\]</p').findall(html)
+        tmp = re.compile(r'<div class="trans-container">(.+?)</div>').findall(html)
+        trans = re.compile(r'<li>(.+?)</li>').findall(tmp[0]) if len(tmp) else []
+        additions = re.compile(r'<p class="additional">[ +(.+?) +]</p').findall(html)
         addition = ''
         if len(additions):
             addition = additions[0]
