@@ -80,7 +80,8 @@ def save_cache(data: Dict, csv_basename: str, csv_dir: str = f'{app_home()}/cach
             writer.writeheader()
     with open(csv_filename, 'r') as file:
         reader = csv.DictReader(file)
-        for record in reader:
+        for line in reader:
+            record: Dict = line
             if record['key'] == data['key']:
                 return
     with open(csv_filename, 'a', newline='\n') as file:
@@ -120,7 +121,8 @@ def search_zh_offline(keyword: str,
     if os.path.exists(f'{csv_dir}/{csv_basename}'):
         with open(f'{csv_dir}/{csv_basename}', 'r') as file:
             reader = csv.DictReader(file)
-            for record in reader:
+            for line in reader:
+                record: Dict[str, str] = line
                 if record['key'] == keyword:
                     return record['result'][2:-2].split('\', \''), True
     return [], False
@@ -172,7 +174,8 @@ def search_en_offline(keyword: str,
     if os.path.exists(f'{csv_dir}/{csv_basename}'):
         with open(f'{csv_dir}/{csv_basename}', 'r') as file:
             reader = csv.DictReader(file)
-            for record in reader:
+            for line in reader:
+                record: Dict[str, Union[str, List[str]]] = line
                 if record['key'] == keyword:
                     record['trans'] = record['trans'][2:-2].split('\', \'')
                     return record, True
